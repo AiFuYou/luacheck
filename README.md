@@ -1,0 +1,2 @@
+# luacheck
+luacheck for git
