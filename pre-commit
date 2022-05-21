@@ -51,8 +51,8 @@ git config hooks.allownonascii true
 git diff-index --check --cached $against --
 
 # *.lua check
-luacheck=game/Tools/luacheck/luacheck.exe
-luacheckCfgFilePath=game/Tools/luacheck/.luacheckrc
+luacheck=./luacheck.exe
+luacheckCfgFilePath=./.luacheckrc
 for file in `git diff --cached --name-only $against`; do
 	echo $file
 	if [ "${file##*.}" = "lua" ]; then
