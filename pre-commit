@@ -60,7 +60,7 @@ for f in $files; do
 		if [ "${f##*.}" = "lua" ]; then
 			if [[ $(uname) == "Darwin" ]]; then
 				luacheck --config $luacheckCfgFilePath $f
-			elif [[ $(expr substr $(uname -s) 1 10) == "MINGW32_NT" ]]; then
+			elif [[ $(expr substr $(uname -s) 1 10) == "MINGW32_NT" ]] || [[ $(expr substr $(uname -s) 1 10) == "MINGW64_NT" ]] ; then
 				$luacheck --config $luacheckCfgFilePath $f
 			fi
 		fi
