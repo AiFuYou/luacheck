@@ -54,21 +54,28 @@ git diff-index --check --cached $against --
 luacheck=./luacheck/luacheck.exe #根据项目路径修改
 luacheckCfgFilePath=./luacheck/.luacheckrc #根据项目路径修改
 shouldRet=0
-for file in `git diff --cached --name-only $against`; do
-	echo $file
-	if [ "${file##*.}" = "lua" ]; then
-		$luacheck --config $luacheckCfgFilePath $file
-	fi
+files=`git diff --cached --name-only $against`
+for f in $files; do
+	if [ -f $f ]; then
+		if [ "${f##*.}" = "lua" ]; then
+			if [[ $(uname) == "Darwin" ]]; then
+			 	luacheck --config $luacheckCfgFilePath $f
+			elif [[ $(expr substr $(uname -s) 1 10) == "MINGW32_NT" ]]; then
+			 	$luacheck --config $luacheckCfgFilePath $f
+			fi
+		fi
 
-	ret="$?"
-	if [[ $ret != 0 && $shouldRet == 0 ]]; then
-		shouldRet=1
+		ret="$?"
+		if [[ $ret != 0 && $shouldRet == 0 ]]; then
+			shouldRet=1
+		fi
 	fi
 done
 
 # asset and .meta check
 ASSETS_DIR=game/Assets # Unity Assets Dir #根据项目路径修改
-git -c diff.renames=false diff --cached --name-only --diff-filter=A -z $against -- "$ASSETS_DIR" | while read -d $'\0' f; do
+files=`git -c diff.renames=false diff --cached --name-only --diff-filter=A $against -- "$ASSETS_DIR"`
+for f in $files; do
 	ext="${f##*.}"
 	base="${f%.*}"
 	filename="$(basename "$f")"
@@ -98,13 +105,14 @@ EOF
 	fi
 done
 
-git -c diff.renames=false diff --cached --name-only --diff-filter=D -z $against -- "$ASSETS_DIR" | while read -d $'\0' f; do
+files=`git -c diff.renames=false diff --cached --name-only --diff-filter=D $against -- "$ASSETS_DIR"`
+for f in $files; do
 	ext="${f##*.}"
 	base="${f%.*}"
 
 	if [ "$ext" = "meta" ]; then
 		if [ $(git ls-files --cached -- "$base" | wc -l) != 0 ]; then
-			cat <<EOF
+cat <<EOF
 Error: Missing meta file.
 Meta file \`$f' is removed, but \`$base' is still in the git index.
 Please revert the beta file or remove the asset file.
@@ -115,7 +123,7 @@ EOF
 		p="$f"
 		while [ "$p" != "$ASSETS_DIR" ]; do
 			if [ $(git ls-files --cached -- "$p" | wc -l) = 0 ] && [ $(git ls-files --cached -- "$p.meta" | wc -l) != 0 ]; then
-				cat <<EOF
+cat <<EOF
 Error: Redudant meta file.
 Asset \`$f' is removed, but \`$p.meta' is still in the git index.
 Please remove \`$p.meta' from git as well.
