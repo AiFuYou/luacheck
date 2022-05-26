@@ -82,7 +82,7 @@ for f in $files; do
 
 	if [ "$ext" = "meta" ]; then
 		if [ $(git ls-files --cached -- "$base" | wc -l) = 0 ]; then
-			cat <<EOF
+cat <<EOF
 Error: Redudant meta file.
 Meta file \`$f' is added, but \`$base' is not in the git index.
 Please add \`$base' to git as well.
@@ -93,7 +93,7 @@ EOF
 		p="$f"
 		while [ "$p" != "$ASSETS_DIR" ]; do
 			if [ $(git ls-files --cached -- "$p.meta" | wc -l) = 0 ]; then
-				cat <<EOF
+cat <<EOF
 Error: Missing meta file.
 Asset \`$f' is added, but \`$p.meta' is not in the git index.
 Please add \`$p.meta' to git as well.
