@@ -48,20 +48,29 @@ fi
 git config hooks.allownonascii true
 
 # If there are whitespace errors, print the offending file names and fail.
-git diff-index --check --cached $against --
+# git diff-index --check --cached $against --
 
 # *.lua check
 luacheck=./luacheck/luacheck.exe #根据项目路径修改
 luacheckCfgFilePath=./luacheck/.luacheckrc #根据项目路径修改
 shouldRet=0
-files=`git diff --cached --name-only $against`
+files=`git diff --cached --name-only --diff-filter=AMR $against` #add，modify，r
+p=""
 for f in $files; do
-	if [ -f $f ]; then
-		if [ "${f##*.}" = "lua" ]; then
+	if [ -z "$p" ]; then
+		p=$f
+	else
+		p="$p $f"
+	fi
+
+	if [ -f "$p" ]; then
+		if [ "${p##*.}" = "lua" ]; then
 			if [[ $(uname) == "Darwin" ]]; then
-				luacheck --config $luacheckCfgFilePath $f
+				luacheck --config $luacheckCfgFilePath "$p"
+				p=""
 			elif [[ $(expr substr $(uname -s) 1 10) == "MINGW32_NT" ]] || [[ $(expr substr $(uname -s) 1 10) == "MINGW64_NT" ]] ; then
-				$luacheck --config $luacheckCfgFilePath $f
+				$luacheck --config $luacheckCfgFilePath "$p"
+				p=""
 			fi
 		fi
 
@@ -134,6 +143,8 @@ EOF
 		done
 	fi
 done
+
+exit 1
 
 if [ $shouldRet != 0 ]; then
 	exit $shouldRet

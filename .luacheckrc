@@ -8,3 +8,5 @@ ignore = {
 	"631",--单行字数
 	"614",--注释尾随空格
 }
+
+formatter = "custom_formatter"
