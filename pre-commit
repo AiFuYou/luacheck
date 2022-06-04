@@ -135,35 +135,32 @@ for f in $files; do
 		p="$p $f"
 	fi
 
-# 	ext="${f##*.}"
-# 	base="${f%.*}"
+	ext="${p##*.}"
+	base="${p%.*}"
 
-# 	if [ "$ext" = "meta" ]; then
-# 		if [ $(git ls-files --cached -- "$base" | wc -l) != 0 ]; then
-# cat <<EOF
-# Error: Missing meta file.
-# Meta file \`$f' is removed, but \`$base' is still in the git index.
-# Please revert the beta file or remove the asset file.
-# EOF
-# 			shouldRet=1
-# 		fi
-# 	else
-# 		p="$f"
-# 		while [ "$p" != "$ASSETS_DIR" ]; do
-# 			if [ $(git ls-files --cached -- "$p" | wc -l) = 0 ] && [ $(git ls-files --cached -- "$p.meta" | wc -l) != 0 ]; then
-# cat <<EOF
-# Error: Redudant meta file.
-# Asset \`$f' is removed, but \`$p.meta' is still in the git index.
-# Please remove \`$p.meta' from git as well.
-# EOF
-# 				shouldRet=1
-# 			fi
-# 			p="${p%/*}"
-# 		done
-# 	fi
+	if [ "$base.$ext" = "$p" ]; then
+		if [ "$ext" = "meta" ]; then
+			if [ $(git ls-files --cached -- "$base" | wc -l) != 0 ]; then
+cat <<EOF
+Error: Missing meta file.
+Meta file \`$p' is removed, but \`$base' is still in the git index.
+Please revert the beta file or remove the asset file.
+EOF
+				shouldRet=1
+			fi
+		else
+			if [ $(git ls-files --cached -- "$p" | wc -l) = 0 ] && [ $(git ls-files --cached -- "$p.meta" | wc -l) != 0 ]; then
+cat <<EOF
+Error: Redudant meta file.
+Asset \`$p' is removed, but \`$p.meta' is still in the git index.
+Please remove \`$p.meta' from git as well.
+EOF
+				shouldRet=1
+			fi
+		fi
+		p=""
+	fi
 done
-
-# exit 1
 
 if [ $shouldRet != 0 ]; then
 	exit $shouldRet
