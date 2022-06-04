@@ -25,7 +25,7 @@
 --    quiet = 0,
 --    ranges = "false",
 --    color = "true",
---    formatter = "CustomFormatter",
+--    formatter = "custom_formatter",
 --    codes = "false"
 --}
 

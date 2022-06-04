@@ -84,67 +84,86 @@ done
 # asset and .meta check
 ASSETS_DIR=game/Assets # Unity Assets Dir #根据项目路径修改
 files=`git -c diff.renames=false diff --cached --name-only --diff-filter=A $against -- "$ASSETS_DIR"`
+p=""
 for f in $files; do
-	ext="${f##*.}"
-	base="${f%.*}"
-	filename="$(basename "$f")"
+	if [ -z "$p" ]; then
+		p="$f"
+	else
+		p="$p $f"
+	fi
 
-	if [ "$ext" = "meta" ]; then
-		if [ $(git ls-files --cached -- "$base" | wc -l) = 0 ]; then
+	if [[ -f "$p" ]]; then
+		base="${p%.*}"
+		if [[ -d "$base" ]]; then
+			echo ""$base" is a folder"
+			p=""
+		else
+			ext="${p##*.}"
+			filename="$(basename "$p")"
+
+			if [ "$ext" = "meta" ]; then
+				if [ $(git ls-files --cached -- "$base" | wc -l) = 0 ]; then
 cat <<EOF
 Error: Redudant meta file.
-Meta file \`$f' is added, but \`$base' is not in the git index.
+Meta file \`$p' is added, but \`$base' is not in the git index.
 Please add \`$base' to git as well.
 EOF
-			shouldRet=1
-		fi
-	elif [ "${filename##.*}" != '' ]; then
-		p="$f"
-		while [ "$p" != "$ASSETS_DIR" ]; do
-			if [ $(git ls-files --cached -- "$p.meta" | wc -l) = 0 ]; then
+					shouldRet=1
+				fi
+			elif [ "${filename##.*}" != '' ]; then
+				if [ $(git ls-files --cached -- "$p.meta" | wc -l) = 0 ]; then
 cat <<EOF
 Error: Missing meta file.
-Asset \`$f' is added, but \`$p.meta' is not in the git index.
+Asset \`$p' is added, but \`$p.meta' is not in the git index.
 Please add \`$p.meta' to git as well.
 EOF
-				shouldRet=1
+					shouldRet=1
+				fi
 			fi
-			p="${p%/*}"
-		done
+
+			p=""
+		fi
 	fi
 done
 
 files=`git -c diff.renames=false diff --cached --name-only --diff-filter=D $against -- "$ASSETS_DIR"`
+p=""
 for f in $files; do
-	ext="${f##*.}"
-	base="${f%.*}"
-
-	if [ "$ext" = "meta" ]; then
-		if [ $(git ls-files --cached -- "$base" | wc -l) != 0 ]; then
-cat <<EOF
-Error: Missing meta file.
-Meta file \`$f' is removed, but \`$base' is still in the git index.
-Please revert the beta file or remove the asset file.
-EOF
-			shouldRet=1
-		fi
-	else
+	if [ -z "$p" ]; then
 		p="$f"
-		while [ "$p" != "$ASSETS_DIR" ]; do
-			if [ $(git ls-files --cached -- "$p" | wc -l) = 0 ] && [ $(git ls-files --cached -- "$p.meta" | wc -l) != 0 ]; then
-cat <<EOF
-Error: Redudant meta file.
-Asset \`$f' is removed, but \`$p.meta' is still in the git index.
-Please remove \`$p.meta' from git as well.
-EOF
-				shouldRet=1
-			fi
-			p="${p%/*}"
-		done
+	else
+		p="$p $f"
 	fi
+
+# 	ext="${f##*.}"
+# 	base="${f%.*}"
+
+# 	if [ "$ext" = "meta" ]; then
+# 		if [ $(git ls-files --cached -- "$base" | wc -l) != 0 ]; then
+# cat <<EOF
+# Error: Missing meta file.
+# Meta file \`$f' is removed, but \`$base' is still in the git index.
+# Please revert the beta file or remove the asset file.
+# EOF
+# 			shouldRet=1
+# 		fi
+# 	else
+# 		p="$f"
+# 		while [ "$p" != "$ASSETS_DIR" ]; do
+# 			if [ $(git ls-files --cached -- "$p" | wc -l) = 0 ] && [ $(git ls-files --cached -- "$p.meta" | wc -l) != 0 ]; then
+# cat <<EOF
+# Error: Redudant meta file.
+# Asset \`$f' is removed, but \`$p.meta' is still in the git index.
+# Please remove \`$p.meta' from git as well.
+# EOF
+# 				shouldRet=1
+# 			fi
+# 			p="${p%/*}"
+# 		done
+# 	fi
 done
 
-exit 1
+# exit 1
 
 if [ $shouldRet != 0 ]; then
 	exit $shouldRet
