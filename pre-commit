@@ -63,8 +63,11 @@ for f in $files; do
 		p="$p $f"
 	fi
 
-	if [ -f "$p" ]; then
-		if [ "${p##*.}" = "lua" ]; then
+	ext="${p##*.}"
+	base="${p%.*}"
+
+	if [ "$base.$ext" = "$p" ]; then
+		if [ "$ext" = "lua" ]; then
 			if [[ $(uname) == "Darwin" ]]; then
 				luacheck --config $luacheckCfgFilePath "$p"
 
@@ -84,12 +87,14 @@ for f in $files; do
 
 				p=""
 			fi
+		else
+			p=""
 		fi
 	fi
 done
 
 # asset and .meta check
-ASSETS_DIR=game/Assets # Unity Assets Dir #根据项目路径修改
+ASSETS_DIR=./game/Assets # Unity Assets Dir #根据项目路径修改
 files=`git -c diff.renames=false diff --cached --name-only --diff-filter=A $against -- "$ASSETS_DIR"`
 p=""
 for f in $files; do
@@ -99,8 +104,10 @@ for f in $files; do
 		p="$p $f"
 	fi
 
-	if [[ -f "$p" ]]; then
-		base="${p%.*}"
+	ext="${p##*.}"
+	base="${p%.*}"
+
+	if [ "$base.$ext" = "$p" ]; then
 		if [[ -d "$base" ]]; then
 			echo ""$base" is a folder"
 			p=""
