@@ -51,8 +51,8 @@ git config hooks.allownonascii true
 # git diff-index --check --cached $against --
 
 # *.lua check
-luacheck=./luacheck/luacheck.exe #根据项目路径修改
-luacheckCfgFilePath=./luacheck/.luacheckrc #根据项目路径修改
+luacheck=./luacheck.exe #根据项目路径修改
+luacheckCfgFilePath=./.luacheckrc #根据项目路径修改
 shouldRet=0
 files=`git diff --cached --name-only --diff-filter=AMR $against` #add，modify，r
 p=""
@@ -94,7 +94,7 @@ for f in $files; do
 done
 
 # asset and .meta check
-ASSETS_DIR=./game/Assets # Unity Assets Dir #根据项目路径修改
+ASSETS_DIR=./Assets # Unity Assets Dir #根据项目路径修改
 files=`git -c diff.renames=false diff --cached --name-only --diff-filter=A $against -- "$ASSETS_DIR"`
 p=""
 for f in $files; do
